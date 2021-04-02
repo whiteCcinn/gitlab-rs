@@ -1,0 +1,10 @@
+/Users/caiwenhui/www/github/whiteCcinn/gitlab-rs/derive-macro/target/debug/deps/proc_macro2-ca5112119b07c137.rmeta: /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/lib.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/marker.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/parse.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/detection.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/fallback.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/wrapper.rs
+
+/Users/caiwenhui/www/github/whiteCcinn/gitlab-rs/derive-macro/target/debug/deps/proc_macro2-ca5112119b07c137.d: /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/lib.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/marker.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/parse.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/detection.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/fallback.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/wrapper.rs
+
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/lib.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/marker.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/parse.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/detection.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/fallback.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/proc-macro2-1.0.24/src/wrapper.rs:

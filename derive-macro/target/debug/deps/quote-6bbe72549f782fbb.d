@@ -1,0 +1,11 @@
+/Users/caiwenhui/www/github/whiteCcinn/gitlab-rs/derive-macro/target/debug/deps/quote-6bbe72549f782fbb.rmeta: /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/lib.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ext.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/format.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ident_fragment.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/to_tokens.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/runtime.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/spanned.rs
+
+/Users/caiwenhui/www/github/whiteCcinn/gitlab-rs/derive-macro/target/debug/deps/quote-6bbe72549f782fbb.d: /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/lib.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ext.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/format.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ident_fragment.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/to_tokens.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/runtime.rs /Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/spanned.rs
+
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/lib.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ext.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/format.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/ident_fragment.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/to_tokens.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/runtime.rs:
+/Users/caiwenhui/.cargo/registry/src/mirrors.ustc.edu.cn-61ef6e0cd06fb9b8/quote-1.0.9/src/spanned.rs:
