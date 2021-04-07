@@ -61,7 +61,14 @@ struct AbcRequest<'a> {
     #[endpoint("/group/{id}/access_requests/{ddd}")]
     pub endpoint: &'a str,
     pub id: i32,
-    pub ddd: &'a str
+    pub ddd: &'a str,
+
+    #[query(30)]
+    pub access_level: Option<i32>,
+    #[query("caiwenhui")]
+    pub name: Option<&'a str>,
+    #[query(None)]
+    pub name2: Option<&'a str>,
 }
 
 
@@ -76,6 +83,11 @@ struct AbcRequest<'a> {
 #[test]
 fn test_derive_endpoint() {
     println!("{:?}", AbcRequest::new(456, "nihao").get_endpoint());
+    println!("{:?}", AbcRequest::new(456, "nihao").get_query_fields());
+    let mut a = AbcRequest::new(456, "nihao");
+    println!("{:?}", a.get_query());
+    a.name = Some("name-level2");
+    println!("{:?}", a.get_query());
 }
 
 #[test]
@@ -120,4 +132,44 @@ fn test_match() {
     // println!("{}", before.replace(after.first().unwrap(), "123"))
 
     // assert_eq!(after, "03/14/2012, 01/01/2013 and 07/05/2014");
+}
+
+#[test]
+fn test_match2() {
+    struct AbcRequest<'a> {
+        pub method: Option<&'a str>,
+        pub endpoint: Option<&'a str>,
+    }
+
+    let a = AbcRequest { method: Some("123"), endpoint: None };
+
+    let mut query = String::new();
+    let test1 = ["method", "endpoint"];
+    query.push_str("?");
+    for name in &test1 {
+        match name {
+            &"method" => {
+                if a.method.is_some() {
+                    query.push_str(format!("{k}={v}",
+                                           k = *name,
+                                           v = a.method.unwrap()
+                    ).as_str());
+                    query.push_str("&");
+                }
+            },
+            &"endpoint" => {
+                if a.endpoint.is_some() {
+                    query.push_str(format!("{k}={v}",
+                                           k = *name,
+                                           v = a.endpoint.unwrap()
+                    ).as_str());
+                    query.push_str("&");
+                }
+            },
+            _ => panic!("不存在属性")
+        }
+    }
+    query.pop();
+
+    println!("{}", query);
 }

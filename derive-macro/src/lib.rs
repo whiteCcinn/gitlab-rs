@@ -52,7 +52,7 @@ pub fn describe(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-#[proc_macro_derive(Endpoint, attributes(method, endpoint))]
+#[proc_macro_derive(Endpoint, attributes(method, endpoint, query))]
 pub fn endpoint(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).expect("Couldn't parse item");
     let result = match ast.data {
@@ -76,19 +76,22 @@ fn endpoint_for_struct(
 
 enum FieldAttr {
     Value(proc_macro2::TokenStream),
+    OptionValue(proc_macro2::TokenStream),
+    None,
 }
 
 impl FieldAttr {
     pub fn as_tokens(&self) -> proc_macro2::TokenStream {
         match *self {
-            FieldAttr::Value(ref s) => my_quote!(#s),
+            FieldAttr::Value(ref s) | FieldAttr::OptionValue(ref s) => my_quote!(#s),
+            FieldAttr::None => my_quote!(None),
         }
     }
 
     pub fn parse(attrs: &[syn::Attribute]) -> Option<FieldAttr> {
         use syn::{AttrStyle, Meta, NestedMeta};
         let mut result = None;
-        let list = ["method", "endpoint"];
+        let list = ["method", "endpoint", "query"];
         for attr in attrs.iter() {
             match attr.style {
                 AttrStyle::Outer => {}
@@ -124,27 +127,51 @@ impl FieldAttr {
                 _ if meta.path().is_ident("endpoint") => {
                     panic!("Invalid #[endpoint] attribute, expected #[endpoint(..)]")
                 }
+                _ if meta.path().is_ident("query") => {
+                    panic!("Invalid #[query] attribute, expected #[query(..)]")
+                }
                 _ => continue,
             };
 
             if result.is_some() {
-                panic!("Expected at most one #[new] attribute");
+                panic!("Expected at most one #[method|endpoint|query] attribute");
             }
             for item in list.nested.iter() {
                 match *item {
                     NestedMeta::Meta(Meta::Path(ref path)) => {
-                        let tokens = match path.get_ident().unwrap().to_string().to_uppercase().as_str() {
-                            "GET" | "PUT" | "POST" | "DELETE" => {
-                                path.get_ident().cloned().unwrap().to_string().to_uppercase()
+                        let mut tokens = String::new();
+                        if (*last_attr_path).ident.to_string().as_str() == "method" {
+                            tokens = match path.get_ident().unwrap().to_string().to_uppercase().as_str() {
+                                "GET" | "PUT" | "POST" | "DELETE" => {
+                                    path.get_ident().cloned().unwrap().to_string().to_uppercase()
+                                }
+                                _ => panic!("Invalid #[method] attribute, expected #[method([GET|PUT|POST|DELETE])]")
+                            };
+                            result = Some(FieldAttr::Value(my_quote!(#tokens)));
+                        } else if (*last_attr_path).ident.to_string().as_str() == "query" {
+                            if path.get_ident().unwrap().to_string().as_str() == "None" {
+                                result = Some(FieldAttr::None);
+                            } else {
+                                tokens = path.get_ident().cloned().unwrap().to_string();
+                                result = Some(FieldAttr::OptionValue(my_quote!(Some(#tokens))));
                             }
-                            _ => panic!("Invalid #[method] attribute, expected #[method([GET|PUT|POST|DELETE])]")
-                        };
-
-                        result = Some(FieldAttr::Value(my_quote!(#tokens)));
+                        }
                     }
                     NestedMeta::Lit(syn::Lit::Str(ref s)) => {
                         let tokens = s.clone().value();
-                        result = Some(FieldAttr::Value(my_quote!(#tokens)));
+                        if (*last_attr_path).ident.to_string().as_str() == "query" {
+                            result = Some(FieldAttr::OptionValue(my_quote!(Some(#tokens))));
+                        } else {
+                            result = Some(FieldAttr::Value(my_quote!(#tokens)));
+                        }
+                    }
+                    NestedMeta::Lit(syn::Lit::Int(ref s)) => {
+                        let tokens = s;
+                        if (*last_attr_path).ident.to_string().as_str() == "query" {
+                            result = Some(FieldAttr::OptionValue(my_quote!(Some(#tokens))));
+                        } else {
+                            result = Some(FieldAttr::Value(my_quote!(#tokens)));
+                        }
                     }
                     _ => panic!("Invalid #[method([GET|PUT|POST|DELETE])] or #[endpoint(\"...\")] attribute")
                 }
@@ -190,7 +217,6 @@ impl<'a> FieldExt<'a> {
     }
 
     pub fn as_endpoint(&self) -> Vec<TokenStream2> {
-        println!("{}", "你好");
         let f_name = &self.ident;
         let e = match self.attr {
             None => my_quote!(#f_name).to_string(),
@@ -227,12 +253,49 @@ impl<'a> FieldExt<'a> {
         endpoint_init
     }
 
+    pub fn as_query(&self) -> TokenStream2 {
+        let bv = Ident::new(&self.ident.to_string(), proc_macro2::Span::call_site());
+        let b = self.ident.to_string();
+        println!("{}", my_quote! {
+                &#b => {
+                    if self.#bv.is_some() {
+                        query.push_str(format!("{k}={v}",
+                                               k = *name,
+                                               v = a.method.unwrap()
+                        ).as_str());
+                        query.push_str("&");
+                    }
+                }
+            });
+
+        my_quote! {
+               &#b => {
+                    if self.#bv.is_some() {
+                        query.push_str(format!("{k}={v}",
+                                               k = *name,
+                                               v = self.#bv.unwrap()
+                        ).as_str());
+                        query.push_str("&");
+                    }
+                }
+            }
+    }
+
     pub fn is_endpoint(&self) -> bool {
         let f_name = &self.ident;
 
-        println!("{}", f_name);
-
         f_name.to_string() == "endpoint"
+    }
+
+    pub fn is_query(&self) -> bool {
+        if self.has_attr() {
+            match self.attr.as_ref().unwrap() {
+                FieldAttr::OptionValue(_) | FieldAttr::None => true,
+                _ => false
+            }
+        } else {
+            return false;
+        }
     }
 
     pub fn needs_arg(&self) -> bool {
@@ -258,6 +321,14 @@ fn endpoint_impl(
         .collect();
     let args = fields.iter().filter(|f| f.needs_arg()).map(|f| f.as_arg());
     let inits = fields.iter().map(|f| f.as_init());
+    let query_fields: Vec<TokenStream2> = fields.iter().filter(|f| f.is_query()).map(|f| {
+        let name = f.ident.to_string();
+        my_quote!(#name)
+    }).collect();
+    let query_fields_len = query_fields.len();
+    // let query_str = format!("{:?}", query_fields);
+    let mut query_str = my_quote!([#(#query_fields),*]);
+
 
     // println!("{}", fields.get(1).unwrap().as_endpoint());
     // fields.get(1).unwrap().as_endpoint();
@@ -269,6 +340,18 @@ fn endpoint_impl(
         }
     }
 
+    let mut query_vec: Vec<TokenStream2> = Vec::new();
+    let mut mb = my_quote!();
+    for field in fields.iter() {
+        if field.is_query() {
+            let value = field.as_query();
+            query_vec.push(value);
+        }
+    }
+    mb = my_quote!(#(#query_vec),*);
+
+    println!("{}", mb);
+
     // let a : Vec<TokenStream2> = fields.iter().map(|f| f.as_endpoint()).collect();
     // let endpoint_match  = my_quote!({ #(#endpoint_match),* });
     let inits = my_quote!({ #(#inits),* });
@@ -279,8 +362,10 @@ fn endpoint_impl(
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
     let mut new = syn::Ident::new("new", proc_macro2::Span::call_site());
     let doc = format!("Constructs a new `{}`.", name);
-    let mut get_endpoint = syn::Ident::new("get_endpoint", proc_macro2::Span::call_site());
+    let get_endpoint = syn::Ident::new("get_endpoint", proc_macro2::Span::call_site());
     let get_endpoint_doc = format!("get the endpoint for gitlab `{}()`.", get_endpoint);
+    let get_query_fields = syn::Ident::new("get_query_fields", proc_macro2::Span::call_site());
+    let get_query = syn::Ident::new("get_query", proc_macro2::Span::call_site());
 
     let output = my_quote! {
         impl #impl_generics #name #ty_generics #where_clause {
@@ -300,6 +385,23 @@ fn endpoint_impl(
                     }
                 }
                 after
+            }
+
+            pub fn #get_query_fields(&self) -> [&str; #query_fields_len] {
+                #query_str
+            }
+
+             pub fn #get_query(&self) -> String {
+                let mut query = String::new();
+                query.push_str("?");
+                for name in &self.#get_query_fields() {
+                    match name {
+                        #mb,
+                        _ => panic!("不存在属性")
+                    }
+                }
+                query.pop();
+                query
             }
         }
     };
