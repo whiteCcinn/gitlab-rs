@@ -350,7 +350,18 @@ fn endpoint_impl(
     }
     mb = my_quote!(#(#query_vec),*);
 
-    println!("{}", mb);
+
+    if mb.is_empty() {
+        mb = my_quote!(
+            _ => panic!("no"),
+        )
+    }else{
+        mb = my_quote!(
+            #mb,
+            _ => panic!("no"),
+        )
+    }
+    // println!("mb:{}", mb.is_empty());
 
     // let a : Vec<TokenStream2> = fields.iter().map(|f| f.as_endpoint()).collect();
     // let endpoint_match  = my_quote!({ #(#endpoint_match),* });
@@ -375,6 +386,7 @@ fn endpoint_impl(
             }
 
             pub fn #get_endpoint(&self) -> String {
+                use regex::Regex;
                 let re = Regex::new(r"\{\w+}").unwrap();
                 let iter = re.find_iter(self.endpoint);
                 let mut after = self.endpoint.to_string();
@@ -396,8 +408,7 @@ fn endpoint_impl(
                 query.push_str("?");
                 for name in &self.#get_query_fields() {
                     match name {
-                        #mb,
-                        _ => panic!("不存在属性")
+                        #mb
                     }
                 }
                 query.pop();

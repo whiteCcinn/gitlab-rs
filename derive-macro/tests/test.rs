@@ -54,22 +54,32 @@ struct MyStruct2 {
 // }
 
 
+// #[derive(Endpoint, Debug)]
+// struct AbcRequest<'a> {
+//     #[method(GET)]
+//     pub method: &'a str,
+//     #[endpoint("/group/{id}/access_requests/{ddd}")]
+//     pub endpoint: &'a str,
+//     pub id: &'a str,
+//     pub ddd: &'a str,
+//
+//     #[query(30)]
+//     pub access_level: Option<i32>,
+//     #[query("caiwenhui")]
+//     pub name: Option<&'a str>,
+//     #[query(None)]
+//     pub name2: Option<&'a str>,
+// }
+
 #[derive(Endpoint, Debug)]
 struct AbcRequest<'a> {
     #[method(GET)]
     pub method: &'a str,
-    #[endpoint("/group/{id}/access_requests/{ddd}")]
+    #[endpoint("/group/{id}/access_requests")]
     pub endpoint: &'a str,
-    pub id: i32,
-    pub ddd: &'a str,
-
-    #[query(30)]
-    pub access_level: Option<i32>,
-    #[query("caiwenhui")]
-    pub name: Option<&'a str>,
-    #[query(None)]
-    pub name2: Option<&'a str>,
+    pub id: &'a str,
 }
+
 
 
 // struct ARequest<'a> {
@@ -82,12 +92,12 @@ struct AbcRequest<'a> {
 //
 #[test]
 fn test_derive_endpoint() {
-    println!("{:?}", AbcRequest::new(456, "nihao").get_endpoint());
-    println!("{:?}", AbcRequest::new(456, "nihao").get_query_fields());
-    let mut a = AbcRequest::new(456, "nihao");
-    println!("{:?}", a.get_query());
-    a.name = Some("name-level2");
-    println!("{:?}", a.get_query());
+    println!("{:?}", AbcRequest::new("456").get_endpoint());
+    // println!("{:?}", AbcRequest::new(456, "nihao").get_query_fields());
+    // let mut a = AbcRequest::new(456, "nihao");
+    // println!("{:?}", a.get_query());
+    // a.name = Some("name-level2");
+    // println!("{:?}", a.get_query());
 }
 
 #[test]

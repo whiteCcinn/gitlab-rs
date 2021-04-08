@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use crate::gitlab::{EndPoint, Client};
+use crate::gitlab::{Client};
 use std::fmt::Display;
 use crate::restful::Kind;
 use crate::common_resources::merge_requests as common_merge_request;
@@ -34,26 +34,26 @@ impl Default for ListMergeRequestRequest {
     }
 }
 
-impl EndPoint for ListMergeRequestRequest {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::GET,
-                format!("{merge_requests}",
-                        merge_requests = self.merge_requests,
-                )
-        );
-    }
-
-    fn get_query_string<'a>(&self) -> String {
-        let mut query_string = String::new();
-        query_string += match self.state {
-            Some(v) => {
-                "state=" + v
-            }
-            None => ""
-        };
-        query_string
-    }
-}
+// impl EndPoint for ListMergeRequestRequest {
+//     fn get_endpoint(&self) -> (Kind, String) {
+//         return (Kind::GET,
+//                 format!("{merge_requests}",
+//                         merge_requests = self.merge_requests,
+//                 )
+//         );
+//     }
+//
+//     fn get_query_string<'a>(&self) -> String {
+//         let mut query_string = String::new();
+//         query_string += match self.state {
+//             Some(v) => {
+//                 "state=" + v
+//             }
+//             None => ""
+//         };
+//         query_string
+//     }
+// }
 
 impl ListMergeRequestRequest {
     pub fn new() -> Self {

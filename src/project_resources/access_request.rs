@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use crate::gitlab::{EndPoint, Client};
+use crate::gitlab::{Client};
 use crate::restful::Kind;
 use std::fmt::Display;
 use crate::common_resources::access_request as common_access_request;
@@ -32,18 +32,18 @@ impl<T: Default> Default for ListProjectsAccessRequestRequest<T> {
         }
     }
 }
-
-impl<T: Display> EndPoint for ListProjectsAccessRequestRequest<T> {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::GET,
-                format!("{projects}/{id}/{access_requests}",
-                        projects = self.projects,
-                        id = self.id,
-                        access_requests = self.access_request
-                )
-        );
-    }
-}
+//
+// impl<T: Display> EndPoint for ListProjectsAccessRequestRequest<T> {
+//     fn get_endpoint(&self) -> (Kind, String) {
+//         return (Kind::GET,
+//                 format!("{projects}/{id}/{access_requests}",
+//                         projects = self.projects,
+//                         id = self.id,
+//                         access_requests = self.access_request
+//                 )
+//         );
+//     }
+// }
 
 impl<T: Default> ListProjectsAccessRequestRequest<T> {
     pub fn new(id: T) -> Self {
@@ -72,26 +72,26 @@ impl<T: Default> Default for RequestProjectsAccessRequestRequest<T> {
     }
 }
 
-impl<T: Display> EndPoint for RequestProjectsAccessRequestRequest<T> {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::GET,
-                format!("{projects}/{id}/{access_requests}",
-                        projects = self.projects,
-                        id = self.id,
-                        access_requests = self.access_request
-                )
-        );
-    }
-}
+// impl<T: Display> EndPoint for RequestProjectsAccessRequestRequest<T> {
+//     fn get_endpoint(&self) -> (Kind, String) {
+//         return (Kind::GET,
+//                 format!("{projects}/{id}/{access_requests}",
+//                         projects = self.projects,
+//                         id = self.id,
+//                         access_requests = self.access_request
+//                 )
+//         );
+//     }
+// }
 
-impl<T: Default> RequestProjectsAccessRequestRequest<T> {
-    pub fn new(id: T) -> Self {
-        Self {
-            id,
-            ..Default::default()
-        }
-    }
-}
+// impl<T: Default> RequestProjectsAccessRequestRequest<T> {
+//     pub fn new(id: T) -> Self {
+//         Self {
+//             id,
+//             ..Default::default()
+//         }
+//     }
+// }
 
 /// Approves an access request for the given user.
 #[derive(Debug)]
@@ -117,20 +117,20 @@ impl<T: Default> Default for ApproveProjectsAccessRequestRequest<T> {
     }
 }
 
-impl<T: Display> EndPoint for ApproveProjectsAccessRequestRequest<T> {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::PUT,
-                format!("{projects}/{id}/{access_requests}/{user_id}/{approve}?{access_level}",
-                        projects = self.projects,
-                        id = self.id,
-                        access_requests = self.access_request,
-                        user_id = self.user_id,
-                        approve = self.approve,
-                        access_level = self.access_level
-                )
-        );
-    }
-}
+// impl<T: Display> EndPoint for ApproveProjectsAccessRequestRequest<T> {
+//     fn get_endpoint(&self) -> (Kind, String) {
+//         return (Kind::PUT,
+//                 format!("{projects}/{id}/{access_requests}/{user_id}/{approve}?{access_level}",
+//                         projects = self.projects,
+//                         id = self.id,
+//                         access_requests = self.access_request,
+//                         user_id = self.user_id,
+//                         approve = self.approve,
+//                         access_level = self.access_level
+//                 )
+//         );
+//     }
+// }
 
 impl<T: Default> ApproveProjectsAccessRequestRequest<T> {
     pub fn new(id: T, user_id: i32) -> Self {
@@ -162,18 +162,18 @@ impl<T: Default> Default for DeleteProjectsAccessRequestRequest<T> {
     }
 }
 
-impl<T: Display> EndPoint for DeleteProjectsAccessRequestRequest<T> {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::DELETE,
-                format!("{projects}/{id}/{access_requests}/{user_id}",
-                        projects = self.projects,
-                        id = self.id,
-                        access_requests = self.access_request,
-                        user_id = self.user_id,
-                )
-        );
-    }
-}
+// impl<T: Display> EndPoint for DeleteProjectsAccessRequestRequest<T> {
+//     fn get_endpoint(&self) -> (Kind, String) {
+//         return (Kind::DELETE,
+//                 format!("{projects}/{id}/{access_requests}/{user_id}",
+//                         projects = self.projects,
+//                         id = self.id,
+//                         access_requests = self.access_request,
+//                         user_id = self.user_id,
+//                 )
+//         );
+//     }
+// }
 
 impl<T: Default> DeleteProjectsAccessRequestRequest<T> {
     pub fn new(id: T, user_id: i32) -> Self {

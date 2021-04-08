@@ -19,11 +19,6 @@ lazy_static! {
     pub static ref HEADER_RATE_RESET: &'static str ="RateLimit-Reset";
 }
 
-pub trait EndPoint {
-    fn get_endpoint(&self) -> (Kind, String);
-    fn get_query_string<'a>(&self) -> String;
-}
-
 #[derive(Debug)]
 pub struct ListsProjectsRequest;
 
@@ -102,13 +97,6 @@ pub struct ListsProjectsResponse<'a> {
 
 }
 
-impl EndPoint for ListsProjectsRequest {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::GET,
-                format!("{projects}", projects = "projects")
-        );
-    }
-}
 
 impl ListsProjectsRequest {
     pub fn new() -> Self {
@@ -143,14 +131,6 @@ pub struct ListsGroupsResponse<'a> {
     pub full_path: &'a str,
     pub created_at: &'a str,
     pub parent_id: Option<i32>,
-}
-
-impl EndPoint for ListsGroupsRequest {
-    fn get_endpoint(&self) -> (Kind, String) {
-        return (Kind::GET,
-                format!("{groups}", groups = "groups")
-        );
-    }
 }
 
 impl ListsGroupsRequest {
@@ -271,42 +251,42 @@ impl Client {
         Ok(url.to_string())
     }
 
-    pub fn request(&self, t: impl EndPoint) -> reqwest::blocking::Response {
-        let (r#type, endpoint) = t.get_endpoint();
-
-        let endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
-
-        println!("{}", endpoint_chain);
-
-        let mut request_builder = match r#type {
-            Kind::GET => {
-                self.http_client.get(endpoint_chain)
-            }
-            Kind::PUT => {
-                self.http_client.put(endpoint_chain)
-            }
-            Kind::POST => {
-                self.http_client.post(endpoint_chain)
-            }
-            Kind::DELETE => {
-                self.http_client.delete(endpoint_chain)
-            }
-        };
-
-        request_builder = match self.auth_type {
-            AuthenticationKind::BasicAuth => {
-                // todo: this is error ,base-auth get the token
-                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-            }
-            AuthenticationKind::OAuthToken => {
-                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-            }
-            AuthenticationKind::PrivateToken => {
-                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-            }
-        };
-
-        let response = request_builder.send().unwrap();
-        return response;
-    }
+    // pub fn request(&self, t: impl EndPoint) -> reqwest::blocking::Response {
+    //     let (r#type, endpoint) = t.get_endpoint();
+    //
+    //     let endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
+    //
+    //     println!("{}", endpoint_chain);
+    //
+    //     let mut request_builder = match r#type {
+    //         Kind::GET => {
+    //             self.http_client.get(endpoint_chain)
+    //         }
+    //         Kind::PUT => {
+    //             self.http_client.put(endpoint_chain)
+    //         }
+    //         Kind::POST => {
+    //             self.http_client.post(endpoint_chain)
+    //         }
+    //         Kind::DELETE => {
+    //             self.http_client.delete(endpoint_chain)
+    //         }
+    //     };
+    //
+    //     request_builder = match self.auth_type {
+    //         AuthenticationKind::BasicAuth => {
+    //             // todo: this is error ,base-auth get the token
+    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+    //         }
+    //         AuthenticationKind::OAuthToken => {
+    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+    //         }
+    //         AuthenticationKind::PrivateToken => {
+    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+    //         }
+    //     };
+    //
+    //     let response = request_builder.send().unwrap();
+    //     return response;
+    // }
 }
