@@ -154,11 +154,11 @@ fn test_match2() {
     let a = AbcRequest { method: Some("123"), endpoint: None };
 
     let mut query = String::new();
-    let test1 = ["method", "endpoint"];
+    let test1 = vec!["method", "endpoint"];
     query.push_str("?");
-    for name in &test1 {
+    for name in test1 {
         match name {
-            &"method" => {
+            "method" => {
                 if a.method.is_some() {
                     query.push_str(format!("{k}={v}",
                                            k = *name,
@@ -167,7 +167,7 @@ fn test_match2() {
                     query.push_str("&");
                 }
             },
-            &"endpoint" => {
+            "endpoint" => {
                 if a.endpoint.is_some() {
                     query.push_str(format!("{k}={v}",
                                            k = *name,

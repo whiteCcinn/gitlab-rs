@@ -1,5 +1,4 @@
 use reqwest::Client;
-use std::collections::HashMap;
 
 pub trait HttpClient {
     fn get(&self, url: String);

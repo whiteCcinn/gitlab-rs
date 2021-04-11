@@ -1,18 +1,15 @@
 use lazy_static::lazy_static;
 use url::{Url, ParseError};
 use crate::restful::Kind;
-use crate::http_client::HttpClient;
 use reqwest;
-use reqwest::Response;
 use serde::{Serialize, Deserialize};
 use crate::common_resources::payload::{Namespace, InternalLinks, ContainerExpirationPolicy, Permissions};
-use std::borrow::Cow;
 
 
 
 lazy_static! {
     pub static ref DEFAULT_BASE_URL: &'static str ="https://gitlab.com/";
-    pub static ref API_VERSION_PATH: &'static str ="api/v4/";
+    pub static ref API_VERSION_PATH: &'static str ="api/v4";
     pub static ref USER_AGENT: &'static str ="gitlab-rs";
 
     pub static ref HEADER_RATE_LIMIT: &'static str ="RateLimit-Limit";
@@ -139,6 +136,13 @@ impl ListsGroupsRequest {
     }
 }
 
+pub trait EndPointTrait {
+    fn get_endpoint(&self) -> String;
+    fn get_query(&self) -> String;
+    fn get_query_fields(&self) -> Vec<&str>;
+    fn get_method(&self) -> Kind;
+}
+
 
 /// List of available authentication types.
 ///
@@ -244,49 +248,52 @@ impl Client {
     }
 
     pub fn get_endpoint_url(&self, endpoint: String) -> Result<String, ParseError> {
-        let mut url = Url::parse(self.base_url.as_str())?;
+        let url = Url::parse(self.base_url.as_str())?;
 
-        url = url.join(endpoint.as_str())?;
+        let url = url.to_string() + endpoint.as_str();
 
         Ok(url.to_string())
     }
 
-    // pub fn request(&self, t: impl EndPoint) -> reqwest::blocking::Response {
-    //     let (r#type, endpoint) = t.get_endpoint();
-    //
-    //     let endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
-    //
-    //     println!("{}", endpoint_chain);
-    //
-    //     let mut request_builder = match r#type {
-    //         Kind::GET => {
-    //             self.http_client.get(endpoint_chain)
-    //         }
-    //         Kind::PUT => {
-    //             self.http_client.put(endpoint_chain)
-    //         }
-    //         Kind::POST => {
-    //             self.http_client.post(endpoint_chain)
-    //         }
-    //         Kind::DELETE => {
-    //             self.http_client.delete(endpoint_chain)
-    //         }
-    //     };
-    //
-    //     request_builder = match self.auth_type {
-    //         AuthenticationKind::BasicAuth => {
-    //             // todo: this is error ,base-auth get the token
-    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-    //         }
-    //         AuthenticationKind::OAuthToken => {
-    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-    //         }
-    //         AuthenticationKind::PrivateToken => {
-    //             request_builder.header("PRIVATE-TOKEN", self.token.to_string())
-    //         }
-    //     };
-    //
-    //     let response = request_builder.send().unwrap();
-    //     return response;
-    // }
+
+    pub fn request(&self, t: impl EndPointTrait) -> reqwest::blocking::Response {
+        let endpoint = t.get_endpoint();
+        let r#type = t.get_method();
+
+        let endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
+
+        println!("{}", endpoint_chain);
+
+        let mut request_builder = match r#type {
+            Kind::GET => {
+                self.http_client.get(endpoint_chain)
+            }
+            Kind::PUT => {
+                self.http_client.put(endpoint_chain)
+            }
+            Kind::POST => {
+                self.http_client.post(endpoint_chain)
+            }
+            Kind::DELETE => {
+                self.http_client.delete(endpoint_chain)
+            }
+        };
+        // let mut request_builder = self.http_client.get(endpoint_chain);
+
+        request_builder = match self.auth_type {
+            AuthenticationKind::BasicAuth => {
+                // todo: this is error ,base-auth get the token
+                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+            }
+            AuthenticationKind::OAuthToken => {
+                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+            }
+            AuthenticationKind::PrivateToken => {
+                request_builder.header("PRIVATE-TOKEN", self.token.to_string())
+            }
+        };
+
+        let response = request_builder.send().unwrap();
+        return response;
+    }
 }

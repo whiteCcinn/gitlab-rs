@@ -8,49 +8,9 @@ macro_rules! my_quote {
 
 use proc_macro::{self, TokenStream};
 use proc_macro2::{TokenStream as TokenStream2, Ident};
-use quote::quote;
-use syn::{parse_macro_input, DeriveInput, FieldsNamed, FieldsUnnamed, PathSegment};
 use syn::Token;
-use std::any::Any;
 use regex::Regex;
 use std::prelude::v1::Vec;
-
-fn path_to_string(path: &syn::Path) -> String {
-    path.segments.iter().map(|s| s.ident.to_string()).collect::<Vec<String>>().join("::")
-}
-
-#[proc_macro_derive(Describe)]
-pub fn describe(input: TokenStream) -> TokenStream {
-    let DeriveInput { ident, data, .. } = parse_macro_input!(input);
-
-    let description = match data {
-        syn::Data::Struct(s) => match s.fields {
-            syn::Fields::Named(FieldsNamed { named, .. }) => {
-                let idents = named.iter().map(|f| &f.ident);
-                format!(
-                    "a struct with these named fields: {}",
-                    quote! {#(#idents), *}
-                )
-            }
-            syn::Fields::Unnamed(FieldsUnnamed { unnamed, .. }) => {
-                let num_fields = unnamed.iter().count();
-                format!("a struct with {} unnamed fields", num_fields)
-            }
-            syn::Fields::Unit => format!("a unit struct"),
-        }
-        _ => "".to_string()
-    };
-
-    let output = quote! {
-    impl #ident {
-        fn describe() {
-        println!("{} is {}.", stringify!(#ident), #description);
-        }
-    }
-    };
-
-    output.into()
-}
 
 #[proc_macro_derive(Endpoint, attributes(method, endpoint, query))]
 pub fn endpoint(input: TokenStream) -> TokenStream {
@@ -139,9 +99,8 @@ impl FieldAttr {
             for item in list.nested.iter() {
                 match *item {
                     NestedMeta::Meta(Meta::Path(ref path)) => {
-                        let mut tokens = String::new();
                         if (*last_attr_path).ident.to_string().as_str() == "method" {
-                            tokens = match path.get_ident().unwrap().to_string().to_uppercase().as_str() {
+                            let tokens = match path.get_ident().unwrap().to_string().to_uppercase().as_str() {
                                 "GET" | "PUT" | "POST" | "DELETE" => {
                                     path.get_ident().cloned().unwrap().to_string().to_uppercase()
                                 }
@@ -152,7 +111,7 @@ impl FieldAttr {
                             if path.get_ident().unwrap().to_string().as_str() == "None" {
                                 result = Some(FieldAttr::None);
                             } else {
-                                tokens = path.get_ident().cloned().unwrap().to_string();
+                                let tokens = path.get_ident().cloned().unwrap().to_string();
                                 result = Some(FieldAttr::OptionValue(my_quote!(Some(#tokens))));
                             }
                         }
@@ -257,7 +216,7 @@ impl<'a> FieldExt<'a> {
         let bv = Ident::new(&self.ident.to_string(), proc_macro2::Span::call_site());
         let b = self.ident.to_string();
         println!("{}", my_quote! {
-                &#b => {
+                #b => {
                     if self.#bv.is_some() {
                         query.push_str(format!("{k}={v}",
                                                k = *name,
@@ -269,7 +228,7 @@ impl<'a> FieldExt<'a> {
             });
 
         my_quote! {
-               &#b => {
+               #b => {
                     if self.#bv.is_some() {
                         query.push_str(format!("{k}={v}",
                                                k = *name,
@@ -317,7 +276,7 @@ fn endpoint_impl(
     let fields: Vec<FieldExt> = fields
         .iter()
         .enumerate()
-        .map(|(i, f)| FieldExt::new(f))
+        .map(|(_, f)| FieldExt::new(f))
         .collect();
     let args = fields.iter().filter(|f| f.needs_arg()).map(|f| f.as_arg());
     let inits = fields.iter().map(|f| f.as_init());
@@ -325,10 +284,13 @@ fn endpoint_impl(
         let name = f.ident.to_string();
         my_quote!(#name)
     }).collect();
-    let query_fields_len = query_fields.len();
-    // let query_str = format!("{:?}", query_fields);
-    let mut query_str = my_quote!([#(#query_fields),*]);
-
+    let mut query_str_token = my_quote!([#(#query_fields),*]);
+    println!("{}", query_str_token.to_string());
+    if query_str_token.to_string().as_str() == "[]" {
+        query_str_token = my_quote!(vec![""]);
+    } else {
+        query_str_token = my_quote!(vec![#query_str_token]);
+    }
 
     // println!("{}", fields.get(1).unwrap().as_endpoint());
     // fields.get(1).unwrap().as_endpoint();
@@ -341,21 +303,19 @@ fn endpoint_impl(
     }
 
     let mut query_vec: Vec<TokenStream2> = Vec::new();
-    let mut mb = my_quote!();
     for field in fields.iter() {
         if field.is_query() {
             let value = field.as_query();
             query_vec.push(value);
         }
     }
-    mb = my_quote!(#(#query_vec),*);
-
+    let mut mb = my_quote!(#(#query_vec),*);
 
     if mb.is_empty() {
         mb = my_quote!(
             _ => panic!("no"),
         )
-    }else{
+    } else {
         mb = my_quote!(
             #mb,
             _ => panic!("no"),
@@ -371,7 +331,7 @@ fn endpoint_impl(
     // println!("\n{}", endpoint_match.collect());
 
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-    let mut new = syn::Ident::new("new", proc_macro2::Span::call_site());
+    let new = syn::Ident::new("new", proc_macro2::Span::call_site());
     let doc = format!("Constructs a new `{}`.", name);
     let get_endpoint = syn::Ident::new("get_endpoint", proc_macro2::Span::call_site());
     let get_endpoint_doc = format!("get the endpoint for gitlab `{}()`.", get_endpoint);
@@ -379,13 +339,19 @@ fn endpoint_impl(
     let get_query = syn::Ident::new("get_query", proc_macro2::Span::call_site());
 
     let output = my_quote! {
+        pub use crate::gitlab::EndPointTrait;
+        pub use crate::restful::Kind;
+
         impl #impl_generics #name #ty_generics #where_clause {
             #[doc = #doc]
             pub fn #new(#(#args),*) -> Self {
                 #name #inits
             }
+        }
 
-            pub fn #get_endpoint(&self) -> String {
+        impl #impl_generics EndPointTrait for #name #ty_generics {
+             #[doc = #get_endpoint_doc]
+             fn #get_endpoint(&self) -> String {
                 use regex::Regex;
                 let re = Regex::new(r"\{\w+}").unwrap();
                 let iter = re.find_iter(self.endpoint);
@@ -399,20 +365,30 @@ fn endpoint_impl(
                 after
             }
 
-            pub fn #get_query_fields(&self) -> [&str; #query_fields_len] {
-                #query_str
-            }
-
-             pub fn #get_query(&self) -> String {
+             fn #get_query(&self) -> String {
                 let mut query = String::new();
                 query.push_str("?");
-                for name in &self.#get_query_fields() {
+                for name in self.#get_query_fields() {
                     match name {
                         #mb
                     }
                 }
                 query.pop();
                 query
+            }
+
+             fn #get_query_fields(&self) -> Vec<&str> {
+                #query_str_token
+            }
+
+             fn get_method(&self) -> Kind {
+                match self.method {
+                    "GET" => Kind::GET,
+                    "PUT" => Kind::PUT,
+                    "POST" => Kind::POST,
+                    "DELETE" => Kind::DELETE,
+                    _ => panic!("not support method type, just support[GET|PUT|POST|DELETE]")
+                }
             }
         }
     };

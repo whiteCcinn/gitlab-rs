@@ -1,7 +1,6 @@
 use lazy_static::lazy_static;
 use serde::{Serialize, Deserialize};
 use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
 use std::fmt::{Formatter, Display, Result};
 
 lazy_static! {
