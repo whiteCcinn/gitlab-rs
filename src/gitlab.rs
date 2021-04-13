@@ -2,10 +2,7 @@ use lazy_static::lazy_static;
 use url::{Url, ParseError};
 use crate::restful::Kind;
 use reqwest;
-use serde::{Serialize, Deserialize};
 use crate::common_resources::payload::{Namespace, InternalLinks, ContainerExpirationPolicy, Permissions};
-
-
 
 lazy_static! {
     pub static ref DEFAULT_BASE_URL: &'static str ="https://gitlab.com/";

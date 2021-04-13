@@ -2,12 +2,14 @@ pub mod gitlab;
 pub mod restful;
 pub mod http_client;
 pub mod common_resources;
-pub mod access_requests;
+pub mod project_resources;
+pub mod group_resources;
+pub mod standalone_resources;
 
 
 #[cfg(test)]
 mod tests {
-    use crate::access_requests::project::ListAccessRequests;
+    use crate::project_resources::access_requests::ListAccessRequests;
     use crate::gitlab::Client;
     use crate::common_resources::payload::{ErrorMessage};
     use crate::gitlab::EndPointTrait;

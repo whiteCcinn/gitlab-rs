@@ -1,6 +1,7 @@
 use derive_macro::Endpoint;
 pub use crate::gitlab::EndPointTrait;
 use crate::restful::Kind;
+
 /// ListAccessRequests gets a list of access requests
 /// viewable by the authenticated user.
 ///

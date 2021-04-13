@@ -2,5 +2,4 @@
 ///
 /// GitLab API docs:
 /// https://docs.gitlab.com/ce/api/access_requests.html
-pub mod project;
-pub mod group;
+pub mod access_requests;
