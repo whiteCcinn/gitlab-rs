@@ -2,28 +2,24 @@ pub mod gitlab;
 pub mod restful;
 pub mod http_client;
 pub mod common_resources;
-pub mod group_resources;
-pub mod project_resources;
-pub mod standalone_resources;
+pub mod access_requests;
 
 
 #[cfg(test)]
 mod tests {
-    use crate::group_resources::access_request::ListGroupsAccessRequestRequest;
+    use crate::access_requests::project::ListAccessRequests;
     use crate::gitlab::Client;
-    use crate::common_resources::payload::ErrorMessage;
+    use crate::common_resources::payload::{ErrorMessage};
     use crate::gitlab::EndPointTrait;
 
     #[test]
     fn test_list_groups_access_request_request() {
-        let instance = ListGroupsAccessRequestRequest::new("456");
+        let instance = ListAccessRequests::new("456");
 
-        let expected_endpoint = "/groups/456/access_requests";
+        let expected_endpoint = "/projects/456/access_requests";
         assert_eq!(instance.get_endpoint(), expected_endpoint);
 
-        println!("{:?}", instance.get_query_fields());
-
-        let expected_fields = vec![""];
+        let expected_fields: Vec<&str> = vec![];
         assert_eq!(expected_fields, instance.get_query_fields());
     }
 
@@ -230,7 +226,7 @@ mod tests {
         let mut client = Client::new("zFabz1E4tGc8HvUmo_26".to_string());
         client.set_base_url("http://gitlab.ccinn.com/".to_string()).unwrap();
 
-        let response = client.request(ListGroupsAccessRequestRequest::new("2"));
+        let response = client.request(ListAccessRequests::new("2"));
 
         if response.status().is_success() {
             let json = response.text().unwrap();

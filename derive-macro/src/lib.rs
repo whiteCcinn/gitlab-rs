@@ -219,8 +219,8 @@ impl<'a> FieldExt<'a> {
                 #b => {
                     if self.#bv.is_some() {
                         query.push_str(format!("{k}={v}",
-                                               k = *name,
-                                               v = a.method.unwrap()
+                                               k = #b,
+                                               v = self.#bv.unwrap()
                         ).as_str());
                         query.push_str("&");
                     }
@@ -231,7 +231,7 @@ impl<'a> FieldExt<'a> {
                #b => {
                     if self.#bv.is_some() {
                         query.push_str(format!("{k}={v}",
-                                               k = *name,
+                                               k = #b,
                                                v = self.#bv.unwrap()
                         ).as_str());
                         query.push_str("&");
@@ -284,8 +284,8 @@ fn endpoint_impl(
         let name = f.ident.to_string();
         my_quote!(#name)
     }).collect();
-    let mut query_str_token = my_quote!([#(#query_fields),*]);
-    println!("{}", query_str_token.to_string());
+    let mut query_str_token = my_quote!(#(#query_fields),*);
+    println!("{:?}", query_str_token.to_string());
     if query_str_token.to_string().as_str() == "[]" {
         query_str_token = my_quote!(vec![""]);
     } else {
@@ -339,9 +339,6 @@ fn endpoint_impl(
     let get_query = syn::Ident::new("get_query", proc_macro2::Span::call_site());
 
     let output = my_quote! {
-        pub use crate::gitlab::EndPointTrait;
-        pub use crate::restful::Kind;
-
         impl #impl_generics #name #ty_generics #where_clause {
             #[doc = #doc]
             pub fn #new(#(#args),*) -> Self {
@@ -377,7 +374,7 @@ fn endpoint_impl(
                 query
             }
 
-             fn #get_query_fields(&self) -> Vec<&str> {
+             fn #get_query_fields(&self) -> Vec<&'static str> {
                 #query_str_token
             }
 
