@@ -8,7 +8,7 @@ macro_rules! my_quote {
 
 use proc_macro::{self, TokenStream};
 use proc_macro2::{TokenStream as TokenStream2, Ident};
-use syn::Token;
+use syn::{Token};
 use regex::Regex;
 use std::prelude::v1::Vec;
 
@@ -52,6 +52,7 @@ impl FieldAttr {
         use syn::{AttrStyle, Meta, NestedMeta};
         let mut result = None;
         let list = ["method", "endpoint", "query"];
+
         for attr in attrs.iter() {
             match attr.style {
                 AttrStyle::Outer => {}
@@ -65,18 +66,13 @@ impl FieldAttr {
                 .last()
                 .expect("Expected at least one segment where #[segment[::segment*](..)]");
 
-            println!("----{}", (*last_attr_path).ident.to_string());
-
             if !list.contains(&(*last_attr_path).ident.to_string().as_str()) {
                 continue;
             }
 
             let meta = match attr.parse_meta() {
                 Ok(meta) => meta,
-                Err(e) => {
-                    println!("{}", e);
-                    continue;
-                }
+                Err(_) => continue
             };
 
             let list = match meta {
@@ -93,9 +89,6 @@ impl FieldAttr {
                 _ => continue,
             };
 
-            if result.is_some() {
-                panic!("Expected at most one #[method|endpoint|query] attribute");
-            }
             for item in list.nested.iter() {
                 match *item {
                     NestedMeta::Meta(Meta::Path(ref path)) => {
@@ -150,8 +143,6 @@ struct FieldExt<'a> {
 
 impl<'a> FieldExt<'a> {
     pub fn new(field: &'a syn::Field) -> FieldExt<'a> {
-        println!("字段：{}", field.ident.clone().unwrap().to_string());
-
         FieldExt {
             ty: &field.ty,
             attr: FieldAttr::parse(&field.attrs),
@@ -181,32 +172,19 @@ impl<'a> FieldExt<'a> {
             None => my_quote!(#f_name).to_string(),
             Some(ref attr) => attr.as_tokens().to_string(),
         };
-
         let re = Regex::new(r"\{(?P<ident>\w+)}").unwrap();
         let iter = re.find_iter(e.as_str());
-        // let mut after = e;
-
         let mut endpoint_init: Vec<TokenStream2> = Vec::new();
 
         for m in iter {
             let cap = re.captures(m.as_str()).unwrap();
             let value = cap.name("ident").unwrap();
-            // match m.as_str() {
             let bv = Ident::new(value.as_str(), proc_macro2::Span::call_site());
             let b = m.as_str();
-            // let bv = value.as_str();
-
-            println!("{}", my_quote! {
-                #b => after = after.replace(#b, self.#bv.to_string().as_str()),
-            });
 
             endpoint_init.push(my_quote! {
                 #b => after = after.replace(#b, self.#bv.to_string().as_str())
             })
-
-            // "{id}" => after = after.replace(m.as_str(), self.id.to_string().as_str()),
-            // _ => panic!("不能替换")
-            // }
         }
 
         endpoint_init
@@ -215,25 +193,13 @@ impl<'a> FieldExt<'a> {
     pub fn as_query(&self) -> TokenStream2 {
         let bv = Ident::new(&self.ident.to_string(), proc_macro2::Span::call_site());
         let b = self.ident.to_string();
-        println!("{}", my_quote! {
-                #b => {
-                    if self.#bv.is_some() {
-                        query.push_str(format!("{k}={v}",
-                                               k = #b,
-                                               v = self.#bv.unwrap()
-                        ).as_str());
-                        query.push_str("&");
-                    }
-                }
-            });
-
         my_quote! {
                #b => {
                     if self.#bv.is_some() {
-                        query.push_str(format!("{k}={v}",
+                         query.push_str(format!("{}={:?}",
                                                k = #b,
-                                               v = self.#bv.unwrap()
-                        ).as_str());
+                                               v = self.#bv.as_ref()
+                         ).as_str());
                         query.push_str("&");
                     }
                 }
@@ -270,9 +236,7 @@ fn endpoint_impl(
     ast: &syn::DeriveInput,
     fields: &syn::punctuated::Punctuated<syn::Field, Token![,]>,
 ) -> TokenStream {
-    // 结构体名字
     let name = &ast.ident;
-
     let fields: Vec<FieldExt> = fields
         .iter()
         .enumerate()
@@ -285,15 +249,12 @@ fn endpoint_impl(
         my_quote!(#name)
     }).collect();
     let mut query_str_token = my_quote!(#(#query_fields),*);
-    println!("{:?}", query_str_token.to_string());
     if query_str_token.to_string().as_str() == "[]" {
         query_str_token = my_quote!(vec![""]);
     } else {
         query_str_token = my_quote!(vec![#query_str_token]);
     }
 
-    // println!("{}", fields.get(1).unwrap().as_endpoint());
-    // fields.get(1).unwrap().as_endpoint();
     let mut ma = my_quote!();
     for field in fields.iter() {
         if field.is_endpoint() {
@@ -321,15 +282,13 @@ fn endpoint_impl(
             _ => panic!("no"),
         )
     }
-    // println!("mb:{}", mb.is_empty());
 
-    // let a : Vec<TokenStream2> = fields.iter().map(|f| f.as_endpoint()).collect();
-    // let endpoint_match  = my_quote!({ #(#endpoint_match),* });
+    for field in fields.iter() {
+        if field.is_query() {
+        }
+    }
+
     let inits = my_quote!({ #(#inits),* });
-    println!("\n{}", inits.to_owned());
-    println!("\n{}", "===========");
-    // println!("\n{}", endpoint_match.collect());
-
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
     let new = syn::Ident::new("new", proc_macro2::Span::call_site());
     let doc = format!("Constructs a new `{}`.", name);
@@ -349,8 +308,7 @@ fn endpoint_impl(
         impl #impl_generics EndPointTrait for #name #ty_generics {
              #[doc = #get_endpoint_doc]
              fn #get_endpoint(&self) -> String {
-                use regex::Regex;
-                let re = Regex::new(r"\{\w+}").unwrap();
+                let re = regex::Regex::new(r"\{\w+}").unwrap();
                 let iter = re.find_iter(self.endpoint);
                 let mut after = self.endpoint.to_string();
                 for m in iter {
@@ -360,7 +318,7 @@ fn endpoint_impl(
                     }
                 }
                 after
-            }
+             }
 
              fn #get_query(&self) -> String {
                 let mut query = String::new();
@@ -372,11 +330,11 @@ fn endpoint_impl(
                 }
                 query.pop();
                 query
-            }
+             }
 
              fn #get_query_fields(&self) -> Vec<&'static str> {
                 #query_str_token
-            }
+             }
 
              fn get_method(&self) -> Kind {
                 match self.method {
@@ -389,9 +347,6 @@ fn endpoint_impl(
             }
         }
     };
-    // output.into()
 
-    println!("\n{}", output.to_owned());
     output.into()
-    // (quote! {}).into()
 }

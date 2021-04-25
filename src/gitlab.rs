@@ -14,10 +14,10 @@ lazy_static! {
 }
 
 pub trait EndPointTrait {
-    fn get_endpoint(&self) -> String;
-    fn get_query(&self) -> String;
-    fn get_query_fields(&self) -> Vec<&'static str>;
     fn get_method(&self) -> Kind;
+    fn get_endpoint(&self) -> String;
+    fn get_query_fields(&self) -> Vec<&'static str>;
+    fn get_query(&self) -> String;
 }
 
 
@@ -128,21 +128,22 @@ impl Client {
     }
 
 
-    pub fn request(&self, t: impl EndPointTrait) -> reqwest::blocking::Response {
+    pub fn request(&self, t: impl EndPointTrait+ serde::Serialize) -> reqwest::blocking::Response {
         let endpoint = t.get_endpoint();
         let r#type = t.get_method();
 
-        let endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
+        let mut endpoint_chain = self.get_endpoint_url(endpoint).unwrap();
 
         let mut request_builder = match r#type {
             Kind::GET => {
+                endpoint_chain += t.get_query().as_str();
                 self.http_client.get(endpoint_chain)
             }
             Kind::PUT => {
                 self.http_client.put(endpoint_chain)
             }
             Kind::POST => {
-                self.http_client.post(endpoint_chain)
+                self.http_client.post(endpoint_chain).json(&t)
             }
             Kind::DELETE => {
                 self.http_client.delete(endpoint_chain)

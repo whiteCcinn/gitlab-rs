@@ -13,6 +13,7 @@ mod tests {
     use crate::gitlab::Client;
     use crate::common_resources::payload::{ErrorMessage};
     use crate::gitlab::EndPointTrait;
+    use crate::project_resources::access_tokens::CreateAccessTokens;
 
     #[test]
     fn test_list_groups_access_request_request() {
@@ -25,8 +26,22 @@ mod tests {
         assert_eq!(expected_fields, instance.get_query_fields());
     }
 
+    #[test]
+    fn test_create_access_tokens() {
+        let mut instance = CreateAccessTokens::new("456");
+        instance.name = Some("caiwenhui");
 
-//     #[test]
+        let expected_endpoint = "/projects/456/access_tokens";
+        assert_eq!(instance.get_endpoint(), expected_endpoint);
+
+        println!("{}", serde_json::to_string(&instance).unwrap());
+
+        // let expected_fields: Vec<&str> = vec![];
+        // assert_eq!(expected_fields, serde_json::to_string(instance));
+    }
+
+
+    //     #[test]
 //     fn it_works() -> Result<(), Box<dyn std::error::Error>> {
 //         use serde::{Serialize, Deserialize};
 //
@@ -248,6 +263,7 @@ mod tests {
 
         Ok(())
     }
+
 //
 //     #[test]
 //     fn request_project_access_request() -> Result<(), Box<dyn std::error::Error>> {
